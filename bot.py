@@ -1,6 +1,7 @@
 import telebot
 from telebot import types
 import json
+from DB import DB as DB
 
 
 with open("tokenbot.json", "r", encoding = "UTF-8") as file:
@@ -10,12 +11,14 @@ with open("tokenbot.json", "r", encoding = "UTF-8") as file:
 informationAboutUser = []
 
 bot = telebot.TeleBot(token)
+DateBaseUsers = DB()
 
 
 
 @bot.message_handler(commands=["start"])
 def greeting(message):
 
+    #Вставить проверку имеется ли такой пользователь в БД или нет    
     bot.send_message(message.chat.id, "Добавим json формат") #!!!Отредактировать файл json для вывода текста!
     markup = types.InlineKeyboardMarkup()
     sexButtonM = types.InlineKeyboardButton('мальчик', callback_data = "man")
@@ -23,8 +26,11 @@ def greeting(message):
     markup.add(sexButtonM, sexButtonW)
     bot.send_message(message.chat.id, "Выберите ваш пол", reply_markup=markup)
     userID = message.from_user.id #Достали ид юзера при старте бота
-    print(f" Ваш ид: {userID}")
-    #bot.register_next_step_handler(message, handle_option_choice)
+    chatID = message.chat.id
+    DateBaseUsers.insert("users", "user_chat_id", userID)
+    DateBaseUsers.insert("users", "user_id", chatID)
+
+
     #Добавить проверку для того регистрировался данны человек или нет. через БД, что бы при попвторном вызове функции старт он не выбирал пол, но мог перерегистроваться
 
 

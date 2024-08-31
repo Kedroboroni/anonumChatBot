@@ -1,14 +1,15 @@
 import sqlite3 as sq
 
 
-with sq.connect("chat.db") as con:
-        cursor = con.cursor()
 
+class DB:
 
+    def __init__(self):
+        
+        with sq.connect("chat.db") as self.con:
+            self.cursor = self.con.cursor()
 
-def createMainTable(cursor):
-    
-    cursor.execute("""CREATE TABLE IF NOT EXISTS users (
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS users (
 
                     user_chat_id INTEGER NOT NULL PRIMARY KEY,
                     user_id INTEGER NOT NULL,   
@@ -17,23 +18,15 @@ def createMainTable(cursor):
                     sex INTEGER 
 
                         )""")
-    cursor.commit()
         
-
-def createCountryTable(cursor):
-    
-    cursor.execute("""CREATE TABLE IF NOT EXISTS country (
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS country (
 
                     country TEXT,
                     distance__from_Moscow INTEGER
 
                         )""")
-    cursor.commit()
-
-
-def createStatusTable(cursor): 
-    
-    cursor.execute("""CREATE TABLE IF NOT EXISTS status (
+        
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS status (
 
                     user_chat_id INTEGER NOT NULL PRIMARY KEY,
                     status INEGER,
@@ -41,21 +34,21 @@ def createStatusTable(cursor):
                     date TEXT
 
                         )""")
-    cursor.commit()
 
 
-def insert(cursor, table, column, values):
-
-        cursor.execute(""" INSERT INTO (?) (?)
+    def insert(self, table, column, values):
+        
+        self.cursor.execute(""" INSERT INTO (?) (?)
                         VALUES (?)
                         """,
                         (table,column, values))
-        cursor.commit()
+        print("Запись произведена успешно")
+        self.con.commit()
 
 
-def update(cursor, table, column, values):
+    def update(self, table, column, values):
 
-        cursor.execute(""" UPDATE (?) SET (?) = (?)""",
+        self.cursor.execute(""" UPDATE (?) SET (?) = (?)""",
                     (table, column, values))
-        cursor.commit()
-
+        print("Изменения записаны успешно")
+        self.con.commit()
