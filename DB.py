@@ -17,6 +17,7 @@ def createMainTable(cursor):
                     sex INTEGER 
 
                         )""")
+    cursor.commit()
         
 
 def createCountryTable(cursor):
@@ -27,6 +28,7 @@ def createCountryTable(cursor):
                     distance__from_Moscow INTEGER
 
                         )""")
+    cursor.commit()
 
 
 def createStatusTable(cursor): 
@@ -39,6 +41,7 @@ def createStatusTable(cursor):
                     date TEXT
 
                         )""")
+    cursor.commit()
 
 
 def insert(cursor, table, column, values):
@@ -54,6 +57,5 @@ def update(cursor, table, column, values):
 
         cursor.execute(""" UPDATE (?) SET (?) = (?)""",
                     (table, column, values))
-        
         cursor.commit()
 
