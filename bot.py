@@ -2,6 +2,7 @@ import telebot
 from telebot import types
 import json
 from DB import DB as DB
+import threading
 
 
 with open("tokenbot.json", "r", encoding = "UTF-8") as file:
@@ -12,6 +13,7 @@ informationAboutUser = []
 
 bot = telebot.TeleBot(token)
 DateBaseUsers = DB()
+
 
 
 
@@ -27,8 +29,10 @@ def greeting(message):
     bot.send_message(message.chat.id, "Выберите ваш пол", reply_markup=markup)
     userID = message.from_user.id #Достали ид юзера при старте бота
     chatID = message.chat.id
-    DateBaseUsers.insert("users", "user_chat_id", userID)
-    DateBaseUsers.insert("users", "user_id", chatID)
+
+    DateBaseUsers.insert("users", "user_chat_id", userID) #Чтобы избежать ошибку нужэно создавать новое соединение для каждого запроса
+    # А вобще нужно подумать може тможно доставть номер потока и подключаться к нему при вызове доп функций, чтобы каждый раз не переграджать вс. эту ситуацию.
+    #DateBaseUsers.insert("users", "user_id", chatID)
 
 
     #Добавить проверку для того регистрировался данны человек или нет. через БД, что бы при попвторном вызове функции старт он не выбирал пол, но мог перерегистроваться
