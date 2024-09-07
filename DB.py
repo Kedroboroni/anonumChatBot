@@ -1,54 +1,67 @@
-import sqlite3 as sq
+import sqlite3
+from queue import Queue
+from threading import Thread
+
+class DatabaseManager:
+    def __init__(self, db_path):
+        self.db_path = db_path
+        self.queue = Queue()
+        self.threadDB = Thread(target=self.processQueue)
+        self.threadDB.start()
 
 
+    def processQueue(self):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
 
-class DB:
-
-    def __init__(self):
-        
-        with sq.connect("chat.db") as self.con:
-            self.cursor = self.con.cursor()
-
-        self.cursor.execute("""CREATE TABLE IF NOT EXISTS users (
-
+        cursor.execute("""CREATE TABLE IF NOT EXISTS users (
                     user_chat_id INTEGER NOT NULL PRIMARY KEY,
-                    user_id INTEGER NOT NULL,   
+                    user_id INTEGER ,   
                     user_name TEXT,
                     country TEXT,
                     sex INTEGER 
-
                         )""")
         
-        self.cursor.execute("""CREATE TABLE IF NOT EXISTS country (
-
+        cursor.execute("""CREATE TABLE IF NOT EXISTS country (
                     country TEXT,
                     distance__from_Moscow INTEGER
-
                         )""")
         
-        self.cursor.execute("""CREATE TABLE IF NOT EXISTS status (
-
+        cursor.execute("""CREATE TABLE IF NOT EXISTS status (
                     user_chat_id INTEGER NOT NULL PRIMARY KEY,
                     status INEGER,
                     time TEXT,
                     date TEXT
-
                         )""")
+        
+        while True:
+            item = self.queue.get()
+            if item is None:
+                break
+            
+            
+            query, params = item
+            cursor.execute(query, params)
+            conn.commit()         
+            self.queue.task_done()
+        
+        conn.close()
+
+    def execute(self, query, params=()):
+        self.queue.put((query, params))
+        self.queue.join()  # Ожидаем выполнения запроса
 
 
     def insert(self, table, column, values):
-        
-        self.cursor.execute(""" INSERT INTO (?) (?)
-                        VALUES (?)
-                        """,
-                        (table,column, values))
-        print("Запись произведена успешно")
-        self.con.commit()
+        self.execute(f"""INSERT INTO {table} ({column}) VALUES ({values})""") #Тут возможна sql инъекция, но избавляться от этого я не буд, потому что проект начальный. Чтобы избавыитьься от sql инъекции можно изспользовать ORM alchemi
 
 
-    def update(self, table, column, values):
+    def update(self, table, column, values, columnChoice, userID):
+        self.execute(f""" UPDATE [{table}] SET {column} = {values} WHERE {columnChoice} = {userID}""") #Проблема тут, нкжно уточнить, как правлиьно сделать это зпрос.
 
-        self.cursor.execute(""" UPDATE (?) SET (?) = (?)""",
-                    (table, column, values))
-        print("Изменения записаны успешно")
-        self.con.commit()
+
+    def close(self):
+        self.queue.put(None)  # Сигнал завершения работы
+        self.worker_thread.join()
+
+

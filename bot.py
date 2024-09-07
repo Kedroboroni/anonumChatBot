@@ -1,7 +1,7 @@
 import telebot
 from telebot import types
 import json
-from DB import DB as DB
+from DB import DatabaseManager as DB
 import threading
 
 
@@ -9,10 +9,13 @@ with open("tokenbot.json", "r", encoding = "UTF-8") as file:
 
     token = json.load(file)["botToken"]
 
+
+
 informationAboutUser = []
 
 bot = telebot.TeleBot(token)
-DateBaseUsers = DB()
+
+DateBaseUsers = DB("chat.db")
 
 
 
@@ -29,12 +32,8 @@ def greeting(message):
     bot.send_message(message.chat.id, "Выберите ваш пол", reply_markup=markup)
     userID = message.from_user.id #Достали ид юзера при старте бота
     chatID = message.chat.id
-
-    DateBaseUsers.insert("users", "user_chat_id", userID) #Чтобы избежать ошибку нужэно создавать новое соединение для каждого запроса
-    # А вобще нужно подумать може тможно доставть номер потока и подключаться к нему при вызове доп функций, чтобы каждый раз не переграджать вс. эту ситуацию.
-    #DateBaseUsers.insert("users", "user_id", chatID)
-
-
+    DateBaseUsers.insert("users", "user_chat_id", chatID)
+    DateBaseUsers.update("users", "user_id", userID, "user_chat_id", chatID)
     #Добавить проверку для того регистрировался данны человек или нет. через БД, что бы при попвторном вызове функции старт он не выбирал пол, но мог перерегистроваться
 
 
@@ -44,6 +43,7 @@ def  handlerMan(callback):
     global informationAboutUser
 
     bot.send_message(callback.message.chat.id, f"Записал вас как {callback.data}") #Добавить жирный тект на месте дата + Большие буквы
+    DateBaseUsers.update("users", "sex", callback.data)
     #Добавить обновление БД
     informationAboutUser.append(callback.data)
     bot.register_next_step_handler(callback.message, stepName)
@@ -57,6 +57,7 @@ def stepName(message):
     #bot.send_message(message.chat.id, "Введите свой псевдоним")
     #Добавить БД
     informationAboutUser.append(message.text)
+    DateBaseUsers.insert("users", "user_name", message.text)
     bot.register_next_step_handler(message, stepCountry)
     bot.send_message(message.chat.id, "Введите название своего города или город в область которого входит ваш населенный пункт")
 
@@ -67,6 +68,7 @@ def stepCountry(message):
     #bot.send_message(message.chat.id, "Введите название своего города или город в область которого входит ваш населенный пункт")
     #Добавить БД
     informationAboutUser.append(message.text)
+    DateBaseUsers.insert("users", "country", message.text)
     bot.send_message(message.chat.id, f"Поздравляю, вы зарегистрировались как: {informationAboutUser[1]}, \nПроживаете в городе: {informationAboutUser[2]}, \nВаш пол: {informationAboutUser[0]}")#Тут нужно доставть значения з БД, но пока ее нет имитируем ее списком
     informationAboutUser = []
     markAnswer = types.InlineKeyboardMarkup()
