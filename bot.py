@@ -11,12 +11,9 @@ with open("tokenbot.json", "r", encoding = "UTF-8") as file:
 
 
 
-informationAboutUser = []
-
 bot = telebot.TeleBot(token)
 
 DateBaseUsers = DB("chat.db")
-
 
 
 
@@ -30,47 +27,36 @@ def greeting(message):
     sexButtonW = types.InlineKeyboardButton('девченка', callback_data = "women")
     markup.add(sexButtonM, sexButtonW)
     bot.send_message(message.chat.id, "Выберите ваш пол", reply_markup=markup)
-    userID = message.from_user.id #Достали ид юзера при старте бота
-    chatID = message.chat.id
-    DateBaseUsers.insert("users", "user_chat_id", chatID)
-    DateBaseUsers.update("users", "user_id", userID, "user_chat_id", chatID)
+    DateBaseUsers.insert("users", "user_chat_id", message.chat.id)
+    DateBaseUsers.update("users", "user_id", message.from_user.id, "user_chat_id", message.chat.id)
     #Добавить проверку для того регистрировался данны человек или нет. через БД, что бы при попвторном вызове функции старт он не выбирал пол, но мог перерегистроваться
 
 
 
 @bot.callback_query_handler(func = lambda callback: (callback.data == "man") or (callback.data == "women"))
 def  handlerMan(callback):
-    global informationAboutUser
 
-    bot.send_message(callback.message.chat.id, f"Записал вас как {callback.data}") #Добавить жирный тект на месте дата + Большие буквы
-    DateBaseUsers.update("users", "sex", callback.data)
-    #Добавить обновление БД
-    informationAboutUser.append(callback.data)
+    bot.send_message(callback.message.chat.id, f"Записал вас как {callback.data} и еще {callback.from_user.id}") #Добавить жирный тект на месте дата + Большие буквы
+    if callback.data == "man":
+        DateBaseUsers.update("users", "sex", 1, "user_id", callback.from_user.id)
+    else:
+        DateBaseUsers.update("users", "sex", 0, "user_id", callback.from_user.id)
     bot.register_next_step_handler(callback.message, stepName)
     bot.send_message(callback.message.chat.id, "Введите свой псевдоним")
 
 
-
 def stepName(message):
 
-    global informationAboutUser
-    #bot.send_message(message.chat.id, "Введите свой псевдоним")
-    #Добавить БД
-    informationAboutUser.append(message.text)
-    DateBaseUsers.insert("users", "user_name", message.text)
+    DateBaseUsers.update("users", "user_name", message.text, "user_id", message.from_user.id)
     bot.register_next_step_handler(message, stepCountry)
     bot.send_message(message.chat.id, "Введите название своего города или город в область которого входит ваш населенный пункт")
+    
 
 
 def stepCountry(message):
 
-    global informationAboutUser
-    #bot.send_message(message.chat.id, "Введите название своего города или город в область которого входит ваш населенный пункт")
-    #Добавить БД
-    informationAboutUser.append(message.text)
-    DateBaseUsers.insert("users", "country", message.text)
-    bot.send_message(message.chat.id, f"Поздравляю, вы зарегистрировались как: {informationAboutUser[1]}, \nПроживаете в городе: {informationAboutUser[2]}, \nВаш пол: {informationAboutUser[0]}")#Тут нужно доставть значения з БД, но пока ее нет имитируем ее списком
-    informationAboutUser = []
+    DateBaseUsers.update("users", "country", message.text, "user_id", message.from_user.id)
+    bot.send_message(message.chat.id, f"Поздравляю, вы зарегистрировались как: {"user_name"}, \nПроживаете в городе: {"country"}, \nВаш пол: {"sex"}")#Тут нужно доставть значения з БД, но пока ее нет имитируем ее списком
     markAnswer = types.InlineKeyboardMarkup()
     yesButton = types.InlineKeyboardButton("Да", callback_data = "YES")
     noButton = types.InlineKeyboardButton("Нет", callback_data = "NO")
