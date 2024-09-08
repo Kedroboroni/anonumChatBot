@@ -59,7 +59,7 @@ class DatabaseManager:
                         VALUES (?)
                         ON CONFLICT ({column}) DO NOTHING
                         """, (values, )) #Тут возможна sql инъекция, но избавляться от этого я не буд, потому что проект начальный. Чтобы избавыитьься от sql инъекции можно изспользовать ORM alchemi
-        print("выполнили запрос без ошибок")
+
 
     def update(self, table, column, values, IDChoice, userID):
         self.execute(f"""UPDATE [{table}] SET ({column}) = ? WHERE ({IDChoice}) = ?""", (values, userID)) #Тут возможна sql инъекция, но избавляться от этого я не буд, потому что проект начальный. Чтобы избавыитьься от sql инъекции можно изспользовать ORM alchemi
