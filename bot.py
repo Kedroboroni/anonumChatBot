@@ -19,8 +19,7 @@ DateBaseUsers = DB("chat.db")
 
 @bot.message_handler(commands=["start"])
 def greeting(message):
-
-    #Вставить проверку имеется ли такой пользователь в БД или нет    
+    
     bot.send_message(message.chat.id, "Добавим json формат") #!!!Отредактировать файл json для вывода текста!
     markup = types.InlineKeyboardMarkup()
     sexButtonM = types.InlineKeyboardButton('мальчик', callback_data = "man")
@@ -52,11 +51,11 @@ def stepName(message):
     bot.send_message(message.chat.id, "Введите название своего города или город в область которого входит ваш населенный пункт")
     
 
-
 def stepCountry(message):
 
     DateBaseUsers.update("users", "country", message.text, "user_id", message.from_user.id)
-    bot.send_message(message.chat.id, f"Поздравляю, вы зарегистрировались как: {"user_name"}, \nПроживаете в городе: {"country"}, \nВаш пол: {"sex"}")#Тут нужно доставть значения з БД, но пока ее нет имитируем ее списком
+    info = DateBaseUsers.select("users", "user_id", message.from_user.id, "user_name", "country", "sex")[0]
+    bot.send_message(message.chat.id, f"Поздравляю, вы зарегистрировались как: {info[0]}, \nПроживаете в городе: {info[1]}, \nВаш пол: {info[2]}")#Тут нужно доставть значения з БД, но пока ее нет имитируем ее списком
     markAnswer = types.InlineKeyboardMarkup()
     yesButton = types.InlineKeyboardButton("Да", callback_data = "YES")
     noButton = types.InlineKeyboardButton("Нет", callback_data = "NO")
@@ -64,11 +63,11 @@ def stepCountry(message):
     bot.send_message(message.chat.id, "Хотите начать поиск для анонимного общения?", reply_markup = markAnswer)
 
 
-
 @bot.callback_query_handler(func = lambda callback: callback.data == "YES")
 def  answerYes(callback):
 
-    bot.send_message(callback.message.chat.id, "И так, начинаю поиск по городу {<ЕГО ГОРОД>}")
+    info = DateBaseUsers.select("users", "user_id", callback.from_user.id, "country")[0]
+    bot.send_message(callback.message.chat.id, f"И так, начинаю поиск по городу {info[0]}")
 
 
 
