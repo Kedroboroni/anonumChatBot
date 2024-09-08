@@ -31,7 +31,8 @@ class DatabaseManager:
                     user_chat_id INTEGER NOT NULL PRIMARY KEY,
                     status INEGER,
                     time TEXT,
-                    date TEXT
+                    date TEXT,
+                    timeUNIX INTEGER
                         )""")
         
         while True:
@@ -56,8 +57,11 @@ class DatabaseManager:
         self.execute(f"""INSERT INTO {table} ({column}) VALUES ({values})""") #Тут возможна sql инъекция, но избавляться от этого я не буд, потому что проект начальный. Чтобы избавыитьься от sql инъекции можно изспользовать ORM alchemi
 
 
-    def update(self, table, column, values, columnChoice, userID):
-        self.execute(f""" UPDATE [{table}] SET {column} = {values} WHERE {columnChoice} = {userID}""") #Проблема тут, нкжно уточнить, как правлиьно сделать это зпрос.
+    def update(self, table, column, values, IDChoice, userID):
+        self.execute(f"""UPDATE [{table}] SET ({column}) = ? WHERE ({IDChoice}) = ?""", (values, userID)) #Тут возможна sql инъекция, но избавляться от этого я не буд, потому что проект начальный. Чтобы избавыитьься от sql инъекции можно изспользовать ORM alchemi
+
+    def select(self, table, IDChoice, userID, *argw):
+        self.execute(f"""SELECT ({argw}) FROM [{table}]  WHERE {IDChoice} = {userID}""")
 
 
     def close(self):
