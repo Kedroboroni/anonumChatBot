@@ -40,28 +40,35 @@ class DatabaseManager:
             if item is None:
                 break
             
-            
             query, params = item
             cursor.execute(query, params)
+            self.result = cursor.fetchall()
             conn.commit()         
             self.queue.task_done()
-        
+
         conn.close()
 
     def execute(self, query, params=()):
         self.queue.put((query, params))
         self.queue.join()  # Ожидаем выполнения запроса
+        return self.result
 
 
     def insert(self, table, column, values):
-        self.execute(f"""INSERT INTO {table} ({column}) VALUES ({values})""") #Тут возможна sql инъекция, но избавляться от этого я не буд, потому что проект начальный. Чтобы избавыитьься от sql инъекции можно изспользовать ORM alchemi
-
+        self.execute(f"""INSERT INTO {table} ({column})
+                        VALUES (?)
+                        ON CONFLICT ({column}) DO NOTHING
+                        """, (values, )) #Тут возможна sql инъекция, но избавляться от этого я не буд, потому что проект начальный. Чтобы избавыитьься от sql инъекции можно изспользовать ORM alchemi
+        print("выполнили запрос без ошибок")
 
     def update(self, table, column, values, IDChoice, userID):
         self.execute(f"""UPDATE [{table}] SET ({column}) = ? WHERE ({IDChoice}) = ?""", (values, userID)) #Тут возможна sql инъекция, но избавляться от этого я не буд, потому что проект начальный. Чтобы избавыитьься от sql инъекции можно изспользовать ORM alchemi
 
-    def select(self, table, IDChoice, userID, *argw):
-        self.execute(f"""SELECT ({argw}) FROM [{table}]  WHERE {IDChoice} = {userID}""")
+
+    def select(self, table, IDChoice, userID, *columns):
+        columns = ', '.join(columns).split(", ") if columns else '*'
+        result = self.execute(f"""SELECT {", ".join(columns)} FROM [{table}]  WHERE ({IDChoice}) = ?""", (userID, ))
+        return result
 
 
     def close(self):
