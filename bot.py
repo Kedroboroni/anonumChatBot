@@ -2,6 +2,7 @@ import telebot
 from telebot import types
 import json
 from DB import DatabaseManager as DB
+import ui
 
 
 with open("tokenbot.json", "r", encoding = "UTF-8") as file:
@@ -11,6 +12,7 @@ with open("tokenbot.json", "r", encoding = "UTF-8") as file:
 
 
 bot = telebot.TeleBot(token)
+Types = types()
 
 DateBaseUsers = DB("chat.db")
 
@@ -21,16 +23,17 @@ def greeting(message):
 
     #!!!!Необходимо добавить проверки от долбоебов, чтобы в имена и города не записывались команды, а так же чтобы пользователь мог вводить в начлае, только то, что от него требуется
     if DateBaseUsers.select("users", "user_id", message.from_user.id, "user_id"):
-        bot.send_message(message.chat.id, "Рады приветсвовать вас на этой грешной земле")
+        bot.send_message(message.chat.id, "Рады приветсвовать вас на этой грешной земле") #Если существует польсователь
         bot.register_next_step_handler(message, replayActionSex)
 
     else:
         bot.send_message(message.chat.id, "Добавим json формат") #!!!Отредактировать файл json для вывода текста!    bot.register_next_step_handler(message, replayActionSex)
-        markup = types.InlineKeyboardMarkup()
-        sexButtonM = types.InlineKeyboardButton('мальчик', callback_data = "man")
-        sexButtonW = types.InlineKeyboardButton('девченка', callback_data = "women")
-        markup.add(sexButtonM, sexButtonW)
-        bot.send_message(message.chat.id, "Выберите ваш пол", reply_markup=markup)
+        ui.sexButtons(bot, Types, message)
+        #markup = types.InlineKeyboardMarkup()
+        #sexButtonM = types.InlineKeyboardButton('мальчик', callback_data = "man")
+        #sexButtonW = types.InlineKeyboardButton('девченка', callback_data = "women")
+        #markup.add(sexButtonM, sexButtonW)
+        #bot.send_message(message.chat.id, "Выберите ваш пол", reply_markup=markup)
         DateBaseUsers.insert("users", "user_chat_id", message.chat.id)
         DateBaseUsers.update("users", "user_id", message.from_user.id, "user_chat_id", message.chat.id)
         #Добавить проверку для того регистрировался данны человек или нет. через БД, что бы при попвторном вызове функции старт он не выбирал пол, но мог перерегистроваться
@@ -38,11 +41,12 @@ def greeting(message):
 
 def replayActionSex(message):
     if DateBaseUsers.select("users", "user_id", message.from_user.id, "sex"):
-        bot.register_next_step_handler(message, replayActionSex)
-        markup = types.InlineKeyboardMarkup()
-        sexButtonM = types.InlineKeyboardButton('мальчик', callback_data = "man")
-        sexButtonW = types.InlineKeyboardButton('девченка', callback_data = "women")
-        markup.add(sexButtonM, sexButtonW)
+        #bot.register_next_step_handler(message, replayActionSex)
+        ui.sexButtons(bot, Types, message)
+        #markup = types.InlineKeyboardMarkup()
+        #sexButtonM = types.InlineKeyboardButton('мальчик', callback_data = "man")
+        #sexButtonW = types.InlineKeyboardButton('девченка', callback_data = "women")
+        #markup.add(sexButtonM, sexButtonW)
         bot.send_message(message.chat.id, "Для посика новых знакомств, вам необходимо указать свой пол, пожалуйста сделайет это", reply_markup=markup)
         
     else: 
