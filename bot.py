@@ -12,7 +12,6 @@ with open("tokenbot.json", "r", encoding = "UTF-8") as file:
 
 
 bot = telebot.TeleBot(token)
-Types = types()
 
 DateBaseUsers = DB("chat.db")
 
@@ -23,31 +22,27 @@ def greeting(message):
 
     #!!!!Необходимо добавить проверки от долбоебов, чтобы в имена и города не записывались команды, а так же чтобы пользователь мог вводить в начлае, только то, что от него требуется
     if DateBaseUsers.select("users", "user_id", message.from_user.id, "user_id"):
-        bot.send_message(message.chat.id, "Рады приветсвовать вас на этой грешной земле") #Если существует польсователь
-        bot.register_next_step_handler(message, replayActionSex)
+        info = DateBaseUsers.select("users", "user_id", message.from_user.id, "user_name", "country", "sex")[0]
+        ui.startSerch(bot, types, message, f"Приветсвую вас - {info[0]}! \nВы проживаете в городе: {info[1]}, \nВаш пол: {info[2]}. \nХотите начать?")
+        #№bot.send_message(message.chat.id, ) #Если существует польсователь
+        bot.register_next_step_handler(message, repeatStart)
 
     else:
         bot.send_message(message.chat.id, "Добавим json формат") #!!!Отредактировать файл json для вывода текста!    bot.register_next_step_handler(message, replayActionSex)
-        ui.sexButtons(bot, Types, message)
-        #markup = types.InlineKeyboardMarkup()
-        #sexButtonM = types.InlineKeyboardButton('мальчик', callback_data = "man")
-        #sexButtonW = types.InlineKeyboardButton('девченка', callback_data = "women")
-        #markup.add(sexButtonM, sexButtonW)
-        #bot.send_message(message.chat.id, "Выберите ваш пол", reply_markup=markup)
+        ui.sexButtons(bot, types, message)
         DateBaseUsers.insert("users", "user_chat_id", message.chat.id)
         DateBaseUsers.update("users", "user_id", message.from_user.id, "user_chat_id", message.chat.id)
         #Добавить проверку для того регистрировался данны человек или нет. через БД, что бы при попвторном вызове функции старт он не выбирал пол, но мог перерегистроваться
 
+def repeatStart(message):
+    ui.startSerch(bot, types, message, f"Извните, но сейчас вам нужно выбрать действие")
+    #bot.send_message(message.chat.id, "Извните, но сейчас вам нужно выбрать действие")
 
-def replayActionSex(message):
+def repeatActionSex(message):
     if DateBaseUsers.select("users", "user_id", message.from_user.id, "sex"):
         #bot.register_next_step_handler(message, replayActionSex)
-        ui.sexButtons(bot, Types, message)
-        #markup = types.InlineKeyboardMarkup()
-        #sexButtonM = types.InlineKeyboardButton('мальчик', callback_data = "man")
-        #sexButtonW = types.InlineKeyboardButton('девченка', callback_data = "women")
-        #markup.add(sexButtonM, sexButtonW)
-        bot.send_message(message.chat.id, "Для посика новых знакомств, вам необходимо указать свой пол, пожалуйста сделайет это", reply_markup=markup)
+        bot.send_message(message.chat.id, "Для посика новых знакомств, вам необходимо указать свой пол, пожалуйста сделайет это")
+        ui.sexButtons(bot, types, message)
         
     else: 
         return True
@@ -77,16 +72,10 @@ def stepCountry(message):
 
     DateBaseUsers.update("users", "country", message.text, "user_id", message.from_user.id)
     info = DateBaseUsers.select("users", "user_id", message.from_user.id, "user_name", "country", "sex")[0]
-    bot.send_message(message.chat.id, f"Поздравляю, вы зарегистрировались как: {info[0]}, \nПроживаете в городе: {info[1]}, \nВаш пол: {info[2]}")#Тут нужно доставть значения з БД, но пока ее нет имитируем ее списком
-    markAnswer = types.InlineKeyboardMarkup()
-    yesButton = types.InlineKeyboardButton("Да", callback_data = "YES")
-    noButton = types.InlineKeyboardButton("Нет", callback_data = "NO")
-    renameButton = types.InlineKeyboardButton("Изменить данные о себе", callback_data = "rename")
-    markAnswer.add(yesButton, noButton)
-    bot.send_message(message.chat.id, "Хотите начать поиск для анонимного общения?", reply_markup = markAnswer)
+    ui.startSerch(bot, types, message, f"Поздравляю, вы зарегистрировались как: {info[0]}, \nПроживаете в городе: {info[1]}, \nВаш пол: {info[2]}. \nХотите начать?")
+    
 
-
-@bot.callback_query_handler(func = lambda callback: callback.data == "YES")
+@bot.callback_query_handler(func = lambda callback: callback.data == "startSerch")
 def  answerYes(callback):
 
     info = DateBaseUsers.select("users", "user_id", callback.from_user.id, "country")[0]
@@ -96,13 +85,9 @@ def  answerYes(callback):
 @bot.callback_query_handler(func = lambda callback: callback.data == "rename")
 def  renameUsers(callback):
 
-    markup = types.InlineKeyboardMarkup()
-    sexButtonM = types.InlineKeyboardButton('мальчик', callback_data = "man")
-    sexButtonW = types.InlineKeyboardButton('девченка', callback_data = "women")
-    markup.add(sexButtonM, sexButtonW)
-    bot.send_message(callback.message.chat.id, "Выберите ваш пол", reply_markup=markup)
-    bot.send_message(callback.message.chat.id, "Введите свой псевдоним")
-    bot.register_next_step_handler(callback.message.chat.id, stepName)
+    ui.sexButtons(bot, types, callback.message)
+    bot.register_next_step_handler(callback.message, stepName)
+    bot.register_next_step_handler(callback.message, repeatActionSex)
 
 
 
