@@ -1,5 +1,5 @@
 .venv
-tokenbot.json
+parametrs.json
 chat.db
 test.py
 __pycache__

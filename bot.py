@@ -5,7 +5,7 @@ from DB import DatabaseManager as DB
 import ui
 
 
-with open("tokenbot.json", "r", encoding = "UTF-8") as file:
+with open("parametrs.json", "r", encoding = "UTF-8") as file:
 
     token = json.load(file)["botToken"]
 
@@ -16,38 +16,19 @@ bot = telebot.TeleBot(token)
 DateBaseUsers = DB("chat.db")
 
 
-
 @bot.message_handler(commands=["start"])
 def greeting(message):
 
-    #!!!!Необходимо добавить проверки от долбоебов, чтобы в имена и города не записывались команды, а так же чтобы пользователь мог вводить в начлае, только то, что от него требуется
     if DateBaseUsers.select("users", "user_id", message.from_user.id, "user_id"):
         info = DateBaseUsers.select("users", "user_id", message.from_user.id, "user_name", "country", "sex")[0]
         ui.startSerch(bot, types, message, f"Приветсвую вас - {info[0]}! \nВы проживаете в городе: {info[1]}, \nВаш пол: {info[2]}. \nХотите начать?")
-        #№bot.send_message(message.chat.id, ) #Если существует польсователь
-        bot.register_next_step_handler(message, repeatStart)
 
     else:
-        bot.send_message(message.chat.id, "Добавим json формат") #!!!Отредактировать файл json для вывода текста!    bot.register_next_step_handler(message, replayActionSex)
+        bot.send_message(message.chat.id, "Добавим json формат") #!!!Отредактировать файл json для вывода текста!
         ui.sexButtons(bot, types, message)
         DateBaseUsers.insert("users", "user_chat_id", message.chat.id)
         DateBaseUsers.update("users", "user_id", message.from_user.id, "user_chat_id", message.chat.id)
-        #Добавить проверку для того регистрировался данны человек или нет. через БД, что бы при попвторном вызове функции старт он не выбирал пол, но мог перерегистроваться
-
-def repeatStart(message):
-    ui.startSerch(bot, types, message, f"Извните, но сейчас вам нужно выбрать действие")
-    #bot.send_message(message.chat.id, "Извните, но сейчас вам нужно выбрать действие")
-
-def repeatActionSex(message):
-    if DateBaseUsers.select("users", "user_id", message.from_user.id, "sex"):
-        #bot.register_next_step_handler(message, replayActionSex)
-        bot.send_message(message.chat.id, "Для посика новых знакомств, вам необходимо указать свой пол, пожалуйста сделайет это")
-        ui.sexButtons(bot, types, message)
-        
-    else: 
-        return True
     
-
 
 @bot.callback_query_handler(func = lambda callback: (callback.data == "man") or (callback.data == "women"))
 def  handlerMan(callback):
@@ -86,8 +67,15 @@ def  answerYes(callback):
 def  renameUsers(callback):
 
     ui.sexButtons(bot, types, callback.message)
-    bot.register_next_step_handler(callback.message, stepName)
-    bot.register_next_step_handler(callback.message, repeatActionSex)
+
+
+@bot.message_handler(content_types = ["text", "foto", "video",
+                                       "audio", "document", "sticker",
+                                        "contact", "location", "inline_query",
+                                        "callback_query"
+                                        ])
+async def updateStatus(message):
+        print("Зарегестрировано действие пользователя")
 
 
 
