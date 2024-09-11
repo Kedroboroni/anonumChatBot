@@ -32,7 +32,7 @@ class DatabaseManager:
                     status INEGER,
                     time TEXT,
                     date TEXT,
-                    time_UNIX INTEGER,
+                    time_UNIX_Action INTEGER,
                     diferent_time_UNIX INTEGER
                         )""")
         

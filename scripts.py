@@ -2,15 +2,15 @@ import time
 import datetime
 
 
-def registerAction(DateBaseUsers, userID, unixTimeAction):
+def registerAction(DateBaseUsers, userID, timeUnixAction):
 
-    date =  datetime.datetime.utcfromtimestamp(int(unixTimeAction)).date()
-    time = datetime.datetime.utcfromtimestamp(int(unixTimeAction)).time()
+    date =  str(datetime.datetime.utcfromtimestamp(int(timeUnixAction)).date())#!!!Далее сделать так, чтобы в БД записывалась дата в формеате даты, а не строки!!!
+    time = str(datetime.datetime.utcfromtimestamp(int(timeUnixAction)).time())#!!!Далее сделать так, чтобы в БД записывалась время в формеате времени, а не строки!!!
 
     DateBaseUsers.insert("status", "user_id", userID)
     DateBaseUsers.update("status", "time", time, "user_id", userID)
     DateBaseUsers.update("status", "date", date, "user_id", userID)
-    DateBaseUsers.update("status", "date", date, "user_id", userID)#Не круто обращаться к БД несмколько , лучше делать все за один раз. исравить в DB.py!!!!
+    DateBaseUsers.update("status", "time_UNIX_Action", timeUnixAction, "user_id", userID)#Не круто обращаться к БД несмколько , лучше делать все за один раз. исравить в DB.py!!!!
     DateBaseUsers.update("status", "status", "online", "user_id", userID)
 
 
