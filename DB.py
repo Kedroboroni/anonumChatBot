@@ -28,7 +28,7 @@ class DatabaseManager:
                         )""")
         
         cursor.execute("""CREATE TABLE IF NOT EXISTS status (
-                    user_chat_id INTEGER NOT NULL PRIMARY KEY,
+                    user_id INTEGER NOT NULL PRIMARY KEY,
                     status INEGER,
                     time TEXT,
                     date TEXT,
