@@ -4,7 +4,7 @@ import json
 from DB import DatabaseManager as DB
 
 
-with open("tokenbot.json", "r", encoding = "UTF-8") as file:
+with open("parametrs.json", "r", encoding = "UTF-8") as file:
 
     token = json.load(file)["botToken"]
 
