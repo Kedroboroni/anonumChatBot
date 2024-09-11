@@ -3,6 +3,7 @@ from telebot import types
 import json
 from DB import DatabaseManager as DB
 import ui
+import scripts as scr
 
 
 with open("parametrs.json", "r", encoding = "UTF-8") as file:
@@ -19,6 +20,8 @@ DateBaseUsers = DB("chat.db")
 @bot.message_handler(commands=["start"])
 def greeting(message):
 
+    #scr.registerAction(DateBaseUsers, message.from_user.id, message.date)
+    print("\n", message.date)
     if DateBaseUsers.select("users", "user_id", message.from_user.id, "user_id"):
         info = DateBaseUsers.select("users", "user_id", message.from_user.id, "user_name", "country", "sex")[0]
         ui.startSerch(bot, types, message, f"Приветсвую вас - {info[0]}! \nВы проживаете в городе: {info[1]}, \nВаш пол: {info[2]}. \nХотите начать?")

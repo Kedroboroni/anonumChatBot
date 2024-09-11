@@ -28,11 +28,12 @@ class DatabaseManager:
                         )""")
         
         cursor.execute("""CREATE TABLE IF NOT EXISTS status (
-                    user_chat_id INTEGER NOT NULL PRIMARY KEY,
+                    user_id INTEGER NOT NULL PRIMARY KEY,
                     status INEGER,
                     time TEXT,
                     date TEXT,
-                    timeUNIX INTEGER
+                    time_UNIX INTEGER,
+                    diferent_time_UNIX INTEGER
                         )""")
         
         while True:
@@ -63,13 +64,25 @@ class DatabaseManager:
 
     def update(self, table, column, values, IDChoice, userID):
         self.execute(f"""UPDATE [{table}] SET ({column}) = ? WHERE ({IDChoice}) = ?""", (values, userID)) #Тут возможна sql инъекция, но избавляться от этого я не буд, потому что проект начальный. Чтобы избавыитьься от sql инъекции можно изспользовать ORM alchemi
-
+        #Тут нужно будет улучшить момент, чтобы можно было записывать сразу несколько парпметров, чтобы в дальнейшем не обращаться к БД несколько раз в одной функции. Сделатаь это скорее всего через **keyargw
 
     def select(self, table, IDChoice, userID, *columns):
         columns = ', '.join(columns).split(", ") if columns else '*'
         result = self.execute(f"""SELECT {", ".join(columns)} FROM [{table}]  WHERE ({IDChoice}) = ?""", (userID, ))
         return result
 
+
+    def selectMORE(self, table, IDChoice, userID, *columns):
+        columns = ', '.join(columns).split(", ") if columns else '*'
+        result = self.execute(f"""SELECT {", ".join(columns)} FROM [{table}]  WHERE ({IDChoice}) >= ?""", (userID, ))
+        return result
+    
+
+    def selectLESS(self, table, IDChoice, userID, *columns):
+        columns = ', '.join(columns).split(", ") if columns else '*'
+        result = self.execute(f"""SELECT {", ".join(columns)} FROM [{table}]  WHERE ({IDChoice}) <= ?""", (userID, ))
+        return result
+    
 
     def close(self):
         self.queue.put(None)  # Сигнал завершения работы
