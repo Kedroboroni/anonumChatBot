@@ -33,13 +33,13 @@ def greeting(message):
 @bot.callback_query_handler(func = lambda callback: (callback.data == "man") or (callback.data == "women"))
 def  handlerMan(callback):
 
-    bot.send_message(callback.message.chat.id, f"Записал вас как {callback.data}") #Добавить жирный тект на месте дата + Большие буквы
+    bot.send_message(callback.message.chat.id, f"Записал вас как {callback.data}. \nВведите свой псевдоним") #Добавить жирный тект на месте дата + Большие буквы
     if callback.data == "man":
-        DateBaseUsers.update("users", "sex", 1, "user_id", callback.from_user.id)
+        DateBaseUsers.update("users", "sex", "мальчик", "user_id", callback.from_user.id)
     else:
-        DateBaseUsers.update("users", "sex", 0, "user_id", callback.from_user.id)
+        DateBaseUsers.update("users", "sex", "девочка", "user_id", callback.from_user.id)
     bot.register_next_step_handler(callback.message, stepName)
-    bot.send_message(callback.message.chat.id, "Введите свой псевдоним")
+    #bot.send_message(callback.message.chat.id, "Введите свой псевдоним")
 
 
 def stepName(message):
@@ -74,7 +74,7 @@ def  renameUsers(callback):
                                         "contact", "location", "inline_query",
                                         "callback_query"
                                         ])
-async def updateStatus(message):
+def updateStatus(message):
         print("Зарегестрировано действие пользователя")
 
 

@@ -4,3 +4,5 @@ chat.db
 test.py
 __pycache__
 ne.py
+DB.py
+main.py
