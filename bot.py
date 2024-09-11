@@ -6,7 +6,7 @@ import ui
 import scripts as scr
 
 
-with open("parametrs.json", "r", encoding = "UTF-8") as file:
+with open("token.json", "r", encoding = "UTF-8") as file:
 
     token = json.load(file)["botToken"]
 
