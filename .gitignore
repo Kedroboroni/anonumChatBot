@@ -1,6 +1,7 @@
 .venv
-tokenbot.json
+token.json
 chat.db
 test.py
 __pycache__
 ne.py
+main.py
