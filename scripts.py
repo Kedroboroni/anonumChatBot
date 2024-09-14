@@ -24,7 +24,8 @@ def udateColumnDiferent(DateBaseUsers, userID, timeUnixLastAction):
 
 def calculateOfflineUsers(DateBaseUsers):
      
-    #diff = int(time.time()) - int(unixTimeLastAction)
-    results = DateBaseUsers.select("status", "diferent_time_UNIX", 300, "user_id")#По иджеи должен вернуть список, проверить как буелт время, пользователей, у которых время активности меньше 300 сек.
-    for i in results:
-        DateBaseUsers.update("status", "status", "offline", "user_id", results)# Обновили пользователей, которые не были активны в течении 5 минут
+    DateBaseUsers.updateMORE("status", "status", "offline", "diferent_time_UNIX", 300)# Обновили пользователей, которые не были активны в течении 5 минут
+
+
+
+    
