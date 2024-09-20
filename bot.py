@@ -4,6 +4,8 @@ import json
 from DB import DatabaseManager as DB
 import ui
 import scripts as scr
+import threading, multiprocessing
+import time as t
 
 
 with open("token.json", "r", encoding = "UTF-8") as file:
@@ -11,6 +13,7 @@ with open("token.json", "r", encoding = "UTF-8") as file:
     token = json.load(file)["botToken"]
 
 
+start_time = None
 
 bot = telebot.TeleBot(token)
 
@@ -43,7 +46,6 @@ def  handlerMan(callback):
     else:
         DateBaseUsers.update("users", "sex", "девочка", "user_id", callback.from_user.id)
     bot.register_next_step_handler(callback.message, stepName)
-    #bot.send_message(callback.message.chat.id, "Введите свой псевдоним")
 
 
 def stepName(message):
@@ -77,6 +79,9 @@ def  renameUsers(callback):
     ui.sexButtons(bot, types, callback.message)
 
 
+thr1 = threading.Thread(target = scr.udateColumnDiferent, args = (DateBaseUsers,)).start()
+
 
 
 bot.polling()
+

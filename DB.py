@@ -29,14 +29,10 @@ class DatabaseManager:
         
         cursor.execute("""CREATE TABLE IF NOT EXISTS status (
                     user_id INTEGER NOT NULL PRIMARY KEY,
-                    status INEGER,
+                    position INEGER,
                     time TEXT,
                     date TEXT,
-<<<<<<< HEAD
-                    time_UNIX INTEGER,
-=======
                     time_UNIX_Action INTEGER,
->>>>>>> scripts
                     diferent_time_UNIX INTEGER
                         )""")
         
@@ -73,6 +69,10 @@ class DatabaseManager:
 
     def updateMORE(self, table, column, values, choice, const):
         self.execute(f"""UPDATE [{table}] SET ({column}) = ? WHERE ({choice}) > ?""", (values, const))
+
+    
+    def updateLESS(self, table, column, values, choice, const):
+        self.execute(f"""UPDATE [{table}] SET ({column}) = ? WHERE ({choice}) < ?""", (values, const))
 
 
     def select(self, table, IDChoice, userID, *columns):

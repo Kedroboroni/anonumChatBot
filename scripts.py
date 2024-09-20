@@ -1,8 +1,12 @@
-import time
+import time as t
 import datetime
+import numpy as np
+
 
 
 def registerAction(DateBaseUsers, userID, timeUnixAction):
+
+    diferentTime = t.time() - timeUnixAction
 
     date =  str(datetime.datetime.utcfromtimestamp(int(timeUnixAction)).date())#!!!Далее сделать так, чтобы в БД записывалась дата в формеате даты, а не строки!!!
     time = str(datetime.datetime.utcfromtimestamp(int(timeUnixAction)).time())#!!!Далее сделать так, чтобы в БД записывалась время в формеате времени, а не строки!!!
@@ -11,20 +15,57 @@ def registerAction(DateBaseUsers, userID, timeUnixAction):
     DateBaseUsers.update("status", "time", time, "user_id", userID)
     DateBaseUsers.update("status", "date", date, "user_id", userID)
     DateBaseUsers.update("status", "time_UNIX_Action", timeUnixAction, "user_id", userID)#Не круто обращаться к БД несмколько , лучше делать все за один раз. исравить в DB.py!!!!
-    DateBaseUsers.update("status", "status", "online", "user_id", userID)
-
-
-def udateColumnDiferent(DateBaseUsers, userID, timeUnixLastAction):
-    """Обнавляем разницу времени между последним событием пользователя и настоящим временем в формате Юникс. Раз в 5 минут.
-        Эта функция должна находиться в асинхронном методе. Посомтерть как работают асинхронные системы. (для отслеживания 5 минут неактивности пользователя
-        и не мешанию ему взаимодействовать с ботом)"""
-    diff = int(time.time()) - int(timeUnixLastAction)
-    DateBaseUsers.update("status", "diferent_time_UNIX", diff, "status", "online") #Изменили столбец разницы времнеи ЮНИКС (посл.акт. - наст время) у всех у кого статут online
+    DateBaseUsers.update("status", "position", "online", "user_id", userID)
     
 
-def calculateOfflineUsers(DateBaseUsers):
-     
-    DateBaseUsers.updateMORE("status", "status", "offline", "diferent_time_UNIX", 300)# Обновили пользователей, которые не были активны в течении 5 минут
+def udateColumnDiferent(DateBaseUsers):
+    
+    while True:
+        print("Обновили БД")
+        #2. Из всех у кого online и diferent time > 5 минут, меняем статус на offline.
+            #2.1 выбирае из всех у кого online и diferent_time > 5 значения колонок id_user
+            #2.2 заменяем статус все id_user из нашей таблицы на oflines
+        nowUnix = int(t.time())
+        result = np.array(DateBaseUsers.select("status", "position", "online", "user_id", "time_UNIX_Action"))
+        if result.size > 0:
+            print(f"выиграл {result}")
+            result[:,1] = nowUnix - result[:,1]
+            for obj in result:
+                print(obj[0], "    ",obj[1])
+                DateBaseUsers.update("status", "diferent_time_UNIX", int(obj[1]), "user_id", int(obj[0]))
+        DateBaseUsers.updateMORE("status", "position", "ofline", "user_id", 10)
+        t.sleep(5)
+   
+
+def calculateOfflineUsers(DateBaseUsers, timeUnixAction):
+    
+    while True:
+        users = DateBaseUsers.select("status", "position", "online", "user_id", "time_UNIX_Action")
+        diferentTime = t.time() - timeUnixAction #!!! Нельзя так там [инт] - [кортеж]
+        DateBaseUsers.update("status", "diferent_time_UNIX", diferentTime, "status", "online")
+        DateBaseUsers.updateMORE("status", "position", "offline", "diferent_time_UNIX", 300)# Обновили пользователей, которые не были активны в течении 5 минут
+        print("Обнавили БД")
+        t.sleep(5)
+
+
+def trackTime(DateBaseUsers):
+
+    while True:
+        print("Обновили БД")
+        #2. Из всех у кого online и diferent time > 5 минут, меняем статус на offline.
+            #2.1 выбирае из всех у кого online и diferent_time > 5 значения колонок id_user
+            #2.2 заменяем статус все id_user из нашей таблицы на oflines
+
+        nowUnix = int(t.time())
+        result = np.array(DateBaseUsers.select("status", "position", "online", "user_id", "time_UNIX_Action"))
+        result[:,1] = nowUnix - result[:,1]
+        for user_id, diferentTime in result:
+            first = t.time()
+            DateBaseUsers.update("status", "diferent_time_UNIX", diferentTime, "user_id", user_id)
+            second = t.time()
+            print(f"Время на изменнеие БД составило: {second-first}")
+        t.sleep(5)
+   
 
 
 
